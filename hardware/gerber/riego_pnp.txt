@@ -1,0 +1,70 @@
+*Pick And Place List
+*Company=
+*Author=
+*eMail=
+*
+*Project=riego
+*Date=09:14:15
+*CreatedBy=Fritzing 0.9.3b.04.19.5c895d327c44a3114e5fcc9d8260daf0cbb52806
+*
+*
+*Coordinates in mm, always center of component
+*Origin 0/0=Lower left corner of PCB
+*Rotation in degree (0-360, math. pos.)
+*
+*No;Value;Package;X;Y;Rotation;Side;Name
+1;;5 mm [THT];13.0888;-74.9942;0;Bottom;LED6
+2;;THT;53.7288;-18.4231;90;Bottom;J15
+3;;THT;28.3099;-7.17333;90;Bottom;J13
+4;;5 mm [THT];28.3287;-74.9942;0;Bottom;LED5
+5;;TO220 [THT];58.8088;-83.4471;0;Bottom;Q3
+6;;THT;56.288;-93.173;-90;Bottom;J5
+7;1k;THT;74.0488;-69.2231;0;Bottom;R4
+8;1k;THT;28.3288;-69.2231;0;Bottom;R10
+9;4.7k;THT;41.0288;-23.5031;-90;Bottom;R13
+10;;;58.8265;-68.6057;0;Bottom;Via1
+11;1k;THT;28.3288;-64.1431;0;Bottom;R9
+12;;THT;41.048;-93.173;-90;Bottom;J6
+13;;TO220 [THT];13.0888;-83.4471;0;Bottom;Q6
+14;;THT;92.9187;-28.5641;0;Bottom;J15
+15;;THT;13.1079;-93.173;-90;Bottom;J8
+16;;THT;15.6098;-7.17333;90;Bottom;J14
+17;;;96.9089;-3.18304;0;Bottom;Hole3
+18;;;48.2537;-17.8996;0;Bottom;TXT5
+19;;;65.5321;-61.9001;0;Bottom;Via2
+20;;;73.369;-48.9728;0;Bottom;TXT1
+21;;TO220 [THT];74.0488;-83.4471;0;Bottom;Q2
+22;;THT;53.7099;-7.17333;90;Bottom;J11
+23;;;73.2533;-45.3096;0;Bottom;TXT2
+24;1k;THT;13.0888;-69.2231;0;Bottom;R12
+25;;TO220 [THT];86.7488;-83.4471;0;Bottom;Q1
+26;1k;THT;89.2888;-69.2231;0;Bottom;R2
+27;;THT;92.9187;-41.2641;0;Bottom;J1
+28;;THT;41.0099;-7.17333;90;Bottom;J12
+29;1k;THT;58.8088;-64.1431;0;Bottom;R5
+30;;THT;92.9187;-53.9641;0;Bottom;J2
+31;1k;THT;89.2888;-64.1431;0;Bottom;R1
+32;;;2.92885;-97.1631;0;Bottom;Hole2
+33;;THT;79.1099;-7.17333;90;Bottom;J9
+34;;;2.92885;-3.18304;0;Bottom;Hole4
+35;;;34.8109;-45.9928;0;Bottom;U1
+36;;THT;71.528;-93.173;-90;Bottom;J4
+37;;THT;86.768;-93.173;-90;Bottom;J3
+38;;TO220 [THT];43.5688;-83.4471;0;Bottom;Q4
+39;;;85.322;-41.7738;-90;Bottom;TXT4
+40;1k;THT;43.5688;-64.1431;0;Bottom;R7
+41;1k;THT;13.0888;-64.1431;0;Bottom;R11
+42;;THT;92.9187;-15.8641;0;Bottom;J17
+43;;;96.9089;-97.1631;0;Bottom;Hole1
+44;1k;THT;43.5688;-69.2231;0;Bottom;R8
+45;;THT;25.808;-93.173;-90;Bottom;J7
+46;;5 mm [THT];86.7487;-74.9942;0;Bottom;LED1
+47;;THT;66.4099;-7.17333;90;Bottom;J10
+48;;TO220 [THT];28.3288;-83.4471;0;Bottom;Q5
+49;1k;THT;58.8088;-69.2231;0;Bottom;R6
+50;;5 mm [THT];43.5687;-74.9942;0;Bottom;LED4
+51;;;85.1082;-54.072;-90;Bottom;TXT3
+52;;5 mm [THT];74.049;-74.9942;0;Bottom;LED2
+53;1k;THT;74.0488;-64.1431;0;Bottom;R3
+54;;5 mm [THT];58.8087;-74.9942;0;Bottom;LED3
+55;;;55.0194;-22.2331;-90;Bottom;DHT1
