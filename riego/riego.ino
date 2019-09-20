@@ -8,11 +8,7 @@
 #include <NTPClient.h>
 #include <PubSubClient.h>
 #include <DHTesp.h>
-/******************************************************************************/
-#define DEBUG_NIVEL  0
-#define DEBUG_TIEMPO 0
-#define MI_DEBUG     0
-#define LIMITES      1
+#include "riegoconfig.h"
 /******************************************************************************/
 #if MI_DEBUG
   #define miPrint(a)   Serial.print(a)
@@ -61,69 +57,59 @@ typedef struct
 {
   char ssid[256];
   char password[256];
-  char clientId[256];
+  char mqttClientId[256];
+  char broker[256];
+  int  puerto;
+  char mqttUsuario[256];
+  char mqttPassword[256];
+  char level1[256];
 }
 wifiStd;
 /******************************************************************************/
-#define NUM_RED (2)
-static const wifiStd wifiList[NUM_RED] = {
-                                     {"WIFI_NAME_1", "WIFI_KEY_1", "riego1"},
-                                     {"WIFI_NAME_2", "WIFI_KEY_2", "riego2"}
-                                   };
+static const wifiStd wifiList[NUM_RED] =
+{
+  {WIFI_NAME_1, WIFI_KEY_1, CLIENTE_ID_1, MQTT_SERVER1, PORT_SERVER1, MQTT_USUARIO_1, MQTT_PASS_1, LEVEL_A_1},
+  {WIFI_NAME_2, WIFI_KEY_2, CLIENTE_ID_2, MQTT_SERVER2, PORT_SERVER2, MQTT_USUARIO_2, MQTT_PASS_2, LEVEL_A_2}
+};
 /******************************************************************************/
-const char* mqtt_server1 = "server1.com";
-const char* mqtt_server2 = "server2.com";
 struct TempAndHumidity tempHumi;
 WiFiClientSecure espClient;
-String clientId;
+String mqttClientId;
 PubSubClient client(espClient);
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "hora.roa.es",7200,6000);
 /******************************************************************************/
 /* topics */
-char * pTopic1;
-char * pTopic2;
-char * pTopic3;
-char * pTopic4;
-char * pTopic5;
-char * pTopic6;
-char * pTopic7;
-char * pTopic8;
-char * pTopic9;
-char * pTopic10;
-char * pTopic11;
-char * pTopic12;
-char * pTopic13;
-char * pTopic14;
+String pTopic1;
+String pTopic2;
+String pTopic3;
+String pTopic4;
+String pTopic5;
+String pTopic6;
+String pTopic7;
+String pTopic8;
+String pTopic9;
+String pTopic10;
+String pTopic11;
+String pTopic12;
+String pTopic13;
+String pTopic14;
 
-#define TEMP_TOPICA1    "arteche/hora"
-#define TEMP_TOPICA2    "arteche/temp"
-#define TEMP_TOPICA3    "arteche/humedad"
-#define TEMP_TOPICA4    "arteche/led1"
-#define TEMP_TOPICA5    "arteche/suelo1"
-#define TEMP_TOPICA6    "arteche/suelo2"
-#define TEMP_TOPICA7    "arteche/led2"
-#define TEMP_TOPICA8    "arteche/Tsuelo1"
-#define TEMP_TOPICA9    "arteche/Tsuelo2"
-#define TEMP_TOPICA10   "arteche/Nivel"
-#define TEMP_TOPICA11   "arteche/stdb1"
-#define TEMP_TOPICA12   "arteche/stdb2"
-#define TEMP_TOPICA13    "arteche/led1r"
-#define TEMP_TOPICA14    "arteche/led2r"
-#define TEMP_TOPICM1    "casam/hora"
-#define TEMP_TOPICM2    "casam/temp"
-#define TEMP_TOPICM3    "casam/humedad"
-#define TEMP_TOPICM4    "casam/led1"
-#define TEMP_TOPICM5    "casam/suelo1"
-#define TEMP_TOPICM6    "casam/suelo2"
-#define TEMP_TOPICM7    "casam/led2"
-#define TEMP_TOPICM8    "casam/Tsuelo1"
-#define TEMP_TOPICM9    "casam/Tsuelo2"
-#define TEMP_TOPICM10   "casam/Nivel"
-#define TEMP_TOPICM11   "casam/stdb1"
-#define TEMP_TOPICM12   "casam/stdb2"
-#define TEMP_TOPICM13   "casam/led1r"
-#define TEMP_TOPICM14   "casam/led2r"
+#define TEMP_TOPIC1    "/hora"
+#define TEMP_TOPIC2    "/temp"
+#define TEMP_TOPIC3    "/humedad"
+#define TEMP_TOPIC4    "/led1"
+#define TEMP_TOPIC5    "/suelo1"
+#define TEMP_TOPIC6    "/suelo2"
+#define TEMP_TOPIC7    "/led2"
+#define TEMP_TOPIC8    "/Tsuelo1"
+#define TEMP_TOPIC9    "/Tsuelo2"
+#define TEMP_TOPIC10   "/Nivel"
+#define TEMP_TOPIC11   "/stdb1"
+#define TEMP_TOPIC12   "/stdb2"
+#define TEMP_TOPIC13   "/led1r"
+#define TEMP_TOPIC14   "/led2r"
+
 static long lastMsg;
 static long bomba1Time;
 static long bomba2Time;
@@ -159,7 +145,7 @@ void callback(char* topic, byte* payload, unsigned int length)
   Serial.println();
 #endif
 
-  if(0 == strcmp(topic, pTopic4))
+  if(0 == strcmp(topic, pTopic4.c_str()))
   {
     if(0 < length)
     {
@@ -171,21 +157,21 @@ void callback(char* topic, byte* payload, unsigned int length)
           if(0 != nivel)
           {
             miPrintln("Bomba 1 NO hay agua");
-            client.publish(pTopic13, "0");
+            client.publish(pTopic13.c_str(), "0");
           }
           else
           {
             digitalWrite(LED_PIN1, PIN_ON);
             stdBomba1 = STD_ON;
-            client.publish(pTopic11, "ON");
-            client.publish(pTopic13, "1");
+            client.publish(pTopic11.c_str(), "ON");
+            client.publish(pTopic13.c_str(), "1");
             miPrintln("Bomba 1 on");
             bomba1Time = millis();
           }
         }
         else if(STD_BLOCKED == stdBomba1)
         {
-          client.publish(pTopic13, "0");
+          client.publish(pTopic13.c_str(), "0");
            miPrintln("Bomba 1 blocked");
         }
       }
@@ -194,12 +180,12 @@ void callback(char* topic, byte* payload, unsigned int length)
         if(STD_ON == stdBomba1)
         {
           miPrintln("Bomba 1 No parar");
-          client.publish(pTopic13, "1");
+          client.publish(pTopic13.c_str(), "1");
         }
       }
     }
   }
-  else if(0 == strcmp(topic, pTopic7))
+  else if(0 == strcmp(topic, pTopic7.c_str()))
   {
     if(0 < length)
     {
@@ -210,21 +196,21 @@ void callback(char* topic, byte* payload, unsigned int length)
           if(0 != nivel)
           {
             miPrintln("Bomba 2 NO hay agua");
-            client.publish(pTopic14, "0");
+            client.publish(pTopic14.c_str(), "0");
           }
           else
           {
             digitalWrite(LED_PIN2, PIN_ON);
             stdBomba2 = STD_ON;
-            client.publish(pTopic12, "ON");
-            client.publish(pTopic14, "1");
+            client.publish(pTopic12.c_str(), "ON");
+            client.publish(pTopic14.c_str(), "1");
             miPrintln("Bomba 2 on");
             bomba2Time = millis();
           }
         }
         else if(STD_BLOCKED == stdBomba2)
         {
-          client.publish(pTopic14, "0");
+          client.publish(pTopic14.c_str(), "0");
           miPrintln("Bomba 2 blocked");
         }
       }
@@ -233,7 +219,7 @@ void callback(char* topic, byte* payload, unsigned int length)
         if(STD_ON == stdBomba2)
         {
           miPrintln("Bomba 2 No parar");
-          client.publish(pTopic14, "1");
+          client.publish(pTopic14.c_str(), "1");
         }
       }
     }
@@ -247,11 +233,11 @@ void mqttconnect() {
     Serial.println("MQTT connecting ...");
     /* client ID */
     /* connect now */
-    if (client.connect(clientId.c_str(), "USER", "PASSWORD"))
+    if (client.connect(mqttClientId.c_str(), "USER", "PASSWORD"))
     {
       Serial.println("connected");
-      client.subscribe(pTopic4);
-      client.subscribe(pTopic7);
+      client.subscribe(pTopic4.c_str());
+      client.subscribe(pTopic7.c_str());
     }else
     {
       Serial.print("failed, status code =");
@@ -290,43 +276,36 @@ int scanAndConect()
         Serial.println(WiFi.localIP());
         timeClient.begin();
         retorno = 0;
-        if(0 == red)
-        {
-          pTopic1  = (char*)TEMP_TOPICM1;
-          pTopic2  = (char*)TEMP_TOPICM2;
-          pTopic3  = (char*)TEMP_TOPICM3;
-          pTopic4  = (char*)TEMP_TOPICM4;
-          pTopic5  = (char*)TEMP_TOPICM5;
-          pTopic6  = (char*)TEMP_TOPICM6;
-          pTopic7  = (char*)TEMP_TOPICM7;
-          pTopic8  = (char*)TEMP_TOPICM8;
-          pTopic9  = (char*)TEMP_TOPICM9;
-          pTopic10 = (char*)TEMP_TOPICM10;
-          pTopic11 = (char*)TEMP_TOPICM11;
-          pTopic12 = (char*)TEMP_TOPICM12;
-          pTopic13 = (char*)TEMP_TOPICM13;
-          pTopic14 = (char*)TEMP_TOPICM14;
-          client.setServer(mqtt_server1, 8883);
-        }
-        else
-        {
-          pTopic1  = (char*)TEMP_TOPICA1;
-          pTopic2  = (char*)TEMP_TOPICA2;
-          pTopic3  = (char*)TEMP_TOPICA3;
-          pTopic4  = (char*)TEMP_TOPICA4;
-          pTopic5  = (char*)TEMP_TOPICA5;
-          pTopic6  = (char*)TEMP_TOPICA6;
-          pTopic7  = (char*)TEMP_TOPICA7;
-          pTopic8  = (char*)TEMP_TOPICA8;
-          pTopic9  = (char*)TEMP_TOPICA9;
-          pTopic10 = (char*)TEMP_TOPICA10;
-          pTopic11 = (char*)TEMP_TOPICA11;
-          pTopic12 = (char*)TEMP_TOPICA12;
-          pTopic13 = (char*)TEMP_TOPICA13;
-          pTopic14 = (char*)TEMP_TOPICA14;
-          client.setServer(mqtt_server2, 8883);
-        }
-        clientId = wifiList[red].clientId;
+        pTopic1   = wifiList[red].level1;
+        pTopic1  += TEMP_TOPIC1;
+        pTopic2   = wifiList[red].level1;
+        pTopic2  += TEMP_TOPIC2;
+        pTopic3   = wifiList[red].level1;
+        pTopic3  += TEMP_TOPIC3;
+        pTopic4   = wifiList[red].level1;
+        pTopic4  += TEMP_TOPIC4;
+        pTopic5   = wifiList[red].level1;
+        pTopic5  += TEMP_TOPIC5;
+        pTopic6   = wifiList[red].level1;
+        pTopic6  += TEMP_TOPIC6;
+        pTopic7   = wifiList[red].level1;
+        pTopic7  += TEMP_TOPIC7;
+        pTopic8   = wifiList[red].level1;
+        pTopic8  += TEMP_TOPIC8;
+        pTopic9   = wifiList[red].level1;
+        pTopic9  += TEMP_TOPIC9;
+        pTopic10  = wifiList[red].level1;
+        pTopic10 += TEMP_TOPIC10;
+        pTopic11  = wifiList[red].level1;
+        pTopic11 += TEMP_TOPIC11;
+        pTopic12  = wifiList[red].level1;
+        pTopic12 += TEMP_TOPIC12;
+        pTopic13  = wifiList[red].level1;
+        pTopic13 += TEMP_TOPIC13;
+        pTopic14  = wifiList[red].level1;
+        pTopic14 += TEMP_TOPIC14;
+        client.setServer(wifiList[red].broker, wifiList[red].puerto);
+        mqttClientId = wifiList[red].mqttClientId;
         break;
       }
       else
@@ -366,7 +345,7 @@ void setup()
 #define STD_HUMEDO        1
 #define STD_ALARMA_HUMEDO 0
 
-void sendTiestoHumedad (int pin, char * localTopic1, char * localTopic2, int * estado)
+void sendTiestoHumedad (int pin, const char * localTopic1, const char * localTopic2, int * estado)
 {
     static int suelo;
     suelo = analogRead(pin);
@@ -569,7 +548,7 @@ void loop()
         lastMsg = now;
         snprintf (msg, 20, "%s", timeClient.getFormattedTime().c_str());
         tempHumi = dht.getTempAndHumidity();
-        client.publish(pTopic1, msg);
+        client.publish(pTopic1.c_str(), msg);
   
         if(!isnan(tempHumi.temperature)) 
         {
@@ -579,7 +558,7 @@ void loop()
         {
            snprintf (msg, 20, "--");
         }
-        client.publish(pTopic2, msg);
+        client.publish(pTopic2.c_str(), msg);
         if(!isnan(tempHumi.humidity)) 
         {
           snprintf (msg, 20, "%.0f", tempHumi.humidity);
@@ -588,10 +567,10 @@ void loop()
         {
            snprintf (msg, 20, "--");
         }
-        client.publish(pTopic3, msg);
+        client.publish(pTopic3.c_str(), msg);
         
-        sendTiestoHumedad (SUELO_PIN1, pTopic5, pTopic8, &estadoSuelo1);
-        sendTiestoHumedad (SUELO_PIN2, pTopic6, pTopic9, &estadoSuelo2);
+        sendTiestoHumedad (SUELO_PIN1, pTopic5.c_str(), pTopic8.c_str(), &estadoSuelo1);
+        sendTiestoHumedad (SUELO_PIN2, pTopic6.c_str(), pTopic9.c_str(), &estadoSuelo2);
         
 #if DEBUG_NIVEL
         nivel = 0;
@@ -600,42 +579,42 @@ void loop()
 #endif
         if(0 == nivel)
         {
-          client.publish(pTopic10, "NORMAL");
+          client.publish(pTopic10.c_str(), "NORMAL");
         }
         else
         {
-          client.publish(pTopic10, "BAJO");
+          client.publish(pTopic10.c_str(), "BAJO");
         }
 /******************************************************************************/
         switch(stdBomba1)
         {
           case STD_OFF:
-            client.publish(pTopic11, "OFF");
+            client.publish(pTopic11.c_str(), "OFF");
             break;
           case STD_ON:
-            client.publish(pTopic11, "ON");
+            client.publish(pTopic11.c_str(), "ON");
             break;
           case STD_BLOCKED:
-            client.publish(pTopic11, "BLOCKED");
+            client.publish(pTopic11.c_str(), "BLOCKED");
             break;
           default:
-            client.publish(pTopic11, "ERROR");
+            client.publish(pTopic11.c_str(), "ERROR");
             break;
         }
 /******************************************************************************/
         switch(stdBomba2)
         {
           case STD_OFF:
-            client.publish(pTopic12, "OFF");
+            client.publish(pTopic12.c_str(), "OFF");
             break;
           case STD_ON:
-            client.publish(pTopic12, "ON");
+            client.publish(pTopic12.c_str(), "ON");
             break;
           case STD_BLOCKED:
-            client.publish(pTopic12, "BLOCKED");
+            client.publish(pTopic12.c_str(), "BLOCKED");
             break;
           default:
-            client.publish(pTopic12, "ERROR");
+            client.publish(pTopic12.c_str(), "ERROR");
             break;
         }
       }
@@ -646,7 +625,7 @@ void loop()
           if((now - bomba1Time) > TIEMPO_MSG)
           {
             bomba1Time = now;
-            client.publish(pTopic13, "0");
+            client.publish(pTopic13.c_str(), "0");
           }
           break;
         case STD_ON:
@@ -654,9 +633,9 @@ void loop()
           {
             bomba1Time = now;
             stdBomba1  = STD_BLOCKED;
-            client.publish(pTopic11, "BLOCKED");
+            client.publish(pTopic11.c_str(), "BLOCKED");
             digitalWrite(LED_PIN1, PIN_OFF);
-            client.publish(pTopic13, "0");
+            client.publish(pTopic13.c_str(), "0");
             miPrintln("Bomba 1 STD_BLOCKED");
           }
           break;
@@ -665,13 +644,13 @@ void loop()
           {
             bomba1Time = now;
             stdBomba1  = STD_OFF;
-            client.publish(pTopic11, "STD_OFF");
+            client.publish(pTopic11.c_str(), "STD_OFF");
             miPrintln("Bomba 1 STD_OFF");
           }
           break;
         default:
           stdBomba1 = STD_OFF;
-          client.publish(pTopic11, "STD_OFF");
+          client.publish(pTopic11.c_str(), "STD_OFF");
           break;
       }
 /******************************************************************************/
@@ -681,7 +660,7 @@ void loop()
           if((now - bomba2Time) > TIEMPO_MSG)
           {
             bomba2Time = now;
-            client.publish(pTopic14, "0");
+            client.publish(pTopic14.c_str(), "0");
           }
           break;
         case STD_ON:
@@ -689,9 +668,9 @@ void loop()
           {
             bomba2Time = now;
             stdBomba2  = STD_BLOCKED;
-            client.publish(pTopic12, "BLOCKED");
+            client.publish(pTopic12.c_str(), "BLOCKED");
             digitalWrite(LED_PIN2, PIN_OFF);
-            client.publish(pTopic14, "0");
+            client.publish(pTopic14.c_str(), "0");
             miPrintln("Bomba 2 STD_BLOCKED");
           }
           break;
@@ -700,13 +679,13 @@ void loop()
           {
             bomba2Time = now;
             stdBomba2  = STD_OFF;
-            client.publish(pTopic12, "STD_OFF");
+            client.publish(pTopic12.c_str(), "STD_OFF");
             miPrintln("Bomba 2 STD_OFF");
           }
           break;
         default:
           stdBomba2 = STD_OFF;
-          client.publish(pTopic12, "STD_OFF");
+          client.publish(pTopic12.c_str(), "STD_OFF");
           break;
       }
           
