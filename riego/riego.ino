@@ -52,6 +52,7 @@
 DHTesp dht;
 static int estadoSuelo1 = 0;
 static int estadoSuelo2 = 0;
+static int red = 0;
 /******************************************************************************/
 typedef struct
 {
@@ -73,7 +74,11 @@ static const wifiStd wifiList[NUM_RED] =
 };
 /******************************************************************************/
 struct TempAndHumidity tempHumi;
-WiFiClientSecure espClient;
+#if MQTT_TLS_SI
+  WiFiClientSecure espClient;
+#else
+  WiFiClient espClient;
+#endif
 String mqttClientId;
 PubSubClient client(espClient);
 WiFiUDP ntpUDP;
@@ -233,7 +238,11 @@ void mqttconnect() {
     Serial.println("MQTT connecting ...");
     /* client ID */
     /* connect now */
-    if (client.connect(mqttClientId.c_str(), "USER", "PASSWORD"))
+#if MQTT_USER_SI
+    if (client.connect(mqttClientId.c_str(), wifiList[red].mqttUsuario, wifiList[red].mqttPassword))
+#else
+     if (client.connect(mqttClientId.c_str()))
+#endif
     {
       Serial.println("connected");
       client.subscribe(pTopic4.c_str());
@@ -251,7 +260,6 @@ int scanAndConect()
 {
     int retorno = 0;
     int cont = 0;
-    int red = 0;
     for(red = 0; NUM_RED > red; red++)
     {
       Serial.println(wifiList[red].ssid);
